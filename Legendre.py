@@ -2,8 +2,8 @@ import numpy as np
 from Primes import isprime, prime_factorization, divisors
 import math
 import cmath
-
-
+import mpmath
+from decimal import Decimal
 
 def legendre_symbol(a, p):
     '''
@@ -40,13 +40,13 @@ def jacobi_symbol(a, n): # Generalization of legendre symbol
 
 def kronecker_symbol(a, n): # Generalization of jacobi symbol
     '''
-    :param a - integer:
-    :param n - nonzero integer:
-    :return - integer -1, 0, or 1:
+    :param a: integer
+    :param n: nonzero integer
+    :return: integer -1, 0, or 1
     '''
 
     if n == 0:
-        return ValueError
+        raise ValueError
     pre = []
     u = 1
     if n < 0:
@@ -83,26 +83,58 @@ def kronecker_symbol(a, n): # Generalization of jacobi symbol
     return np.prod(pre)
 
 def cipolla(a, p):
-        '''
-        :param a - integer:
-        :param p - positive odd prime:
-        :return - list containing cipolla values:
-        '''
+    '''
+    :param a: integer
+    :param p: positive odd prime
+    :return: list containing cipolla values
+    '''
 
-        if legendre_symbol(a, p) == 1 and isprime(p):
-            Fp = range(p)
-            a = 0
-            for i in Fp:
-                print legendre_symbol(i**2 - a, p)
-                if legendre_symbol(i**2 - a, p) == -1:
-                    a = i
-                    break
-            modify = pow(a + cmath.sqrt(a**2 - a), (p+1)/2)
-            alpha = int(round(modify.real % p))
-            # beta = int(round(modify.imag / cmath.sqrt(a**2 - n).imag)) % p
-            return [alpha, p - alpha]
-        else:
-            return ValueError
+    if legendre_symbol(a, p) == 1 and isprime(p):
+        Fp = range(p)
+        a = 0
+        for i in Fp:
+            print legendre_symbol(i**2 - a, p)
+            if legendre_symbol(i**2 - a, p) == -1:
+                a = i
+                break
+        modify = pow(a + cmath.sqrt(a**2 - a), (p+1)/2)
+        alpha = int(round(modify.real % p))
+        # beta = int(round(modify.imag / cmath.sqrt(a**2 - n).imag)) % p
+        return [alpha, p - alpha]
+    else:
+        raise ValueError
+
+
+def chi(v, z):
+    '''
+    :param v:
+    :param z:
+    :return: Legendre chi function
+    '''
+
+    return mpmath.nsum(lambda k: pow(z, 2*k + 1)/pow(2*k + 1, v), [0, mpmath.inf])
+
+def gauss_legendre(n): # compute digits of pi - memory intensive
+    '''
+    :param n: number of iterations
+    :return: pi
+    '''
+
+    a = 1
+    b = 1/math.sqrt(2)
+    t = 1./4
+    p = 1
+
+    while n:
+        a_prev = a
+        a = (a + b)/2
+        b = math.sqrt(a_prev * b)
+        t -= p * pow(a_prev - a, 2)
+        p *= 2
+        n -= 1
+
+    return Decimal(pow(a + b, 2)/(4 * t))
 
 if __name__ == "__main__":
-    pass
+
+    print gauss_legendre(10)
